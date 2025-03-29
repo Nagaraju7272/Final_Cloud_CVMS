@@ -27,7 +27,7 @@ SECRET_KEY = 'django-insecure-bnqm4)r65ydv9t*e7foq%e=^c4eczp=m6c+v#$+#l4b+303fyn
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
  
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', '.elasticbeanstalk.com']
  
 LOGIN_URL = '/accounts/login/'  # Redirect unauthenticated users here
 LOGIN_REDIRECT_URL = '/'  # Redirect after login to dashboard
