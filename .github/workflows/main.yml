@@ -3,7 +3,7 @@ name: Deploy to AWS Elastic Beanstalk
 on:
   push:
     branches:
-      - none
+      - main
 
 jobs:
   deploy:
@@ -21,15 +21,15 @@ jobs:
 
     - name: Build and Push Docker Image
       run: |
-        docker build -t nagaraju3029/cvms-9:${{ env.IMAGE_TAG }} .
-        docker push nagaraju3029/cvms-9:${{ env.IMAGE_TAG }}
+        docker build -t nagaraju3029/cvms-15:${{ env.IMAGE_TAG }} .
+        docker push nagaraju3029/cvms-15:${{ env.IMAGE_TAG }}
 
     - name: Generate Dockerrun.aws.json
       run: |
         echo '{
           "AWSEBDockerrunVersion": "1",
           "Image": {
-            "Name": "nagaraju3029/cvms-9:${{ env.IMAGE_TAG }}",
+            "Name": "nagaraju3029/cvms-15:${{ env.IMAGE_TAG }}",
             "Update": "true"
           },
           "Ports": [
