@@ -4,3 +4,5 @@ django-storages==1.14
 python-decouple>=3.8
 python-dotenv
 gunicorn>=20.1.0
+whitenoise
+ 
