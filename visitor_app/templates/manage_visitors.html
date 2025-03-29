@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block content %}
+    <h1>Manage Visitors</h1>
+    <ul>
+        {% for visitor in visitors %}
+            {% if not visitor.exit_time %}
+                <li>{{ visitor.name }} - {{ visitor.phone }}
+                    <form method="post" style="display:inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="phone" value="{{ visitor.phone }}">
+                        <button type="submit">Mark Exit</button>
+                    </form>
+                </li>
+            {% endif %}
+        {% endfor %}
+    </ul>
+{% endblock %}

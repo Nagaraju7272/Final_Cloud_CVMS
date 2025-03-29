@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block content %}
+    <h1>Visitors</h1>
+
+    {% if visitors %}
+        <ul class="visitor-list">
+            {% for visitor in visitors %}
+                <li class="visitor-item">
+                    <span class="visitor-details">
+                        {{ visitor.name }} - {{ visitor.phone }} - {{ visitor.entry_time }}
+                        {% if visitor.exit_time %} (Exited: {{ visitor.exit_time }}){% endif %}
+                    </span>
+                    <a href="{% url 'update_visitor' visitor.phone %}" class="update-button">Update</a>
+                    <a href="{% url 'delete_visitor' visitor.phone %}" class="delete-button" onclick="return confirm('Are you sure you want to delete this visitor?')">Delete</a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p class="no-visitors">No visitors found.</p>
+    {% endif %}
+
+    <a href="{% url 'add_visitor' %}" class="add-button">Add New Visitor</a>
+{% endblock %}

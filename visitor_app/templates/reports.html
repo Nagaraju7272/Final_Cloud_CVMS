@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block content %}
+    <h1>Visitor Reports</h1>
+    <form method="post">
+        {% csrf_token %}
+        <input type="date" name="start_date" value="{{ start_date|default_if_none:'' }}" required>
+        <input type="date" name="end_date" value="{{ end_date|default_if_none:'' }}" required>
+        <button type="submit">Generate Report</button>
+    </form>
+    {% if error %}
+        <p style="color: red;">{{ error }}</p>
+    {% elif visitors %}
+        <h2>Visitors Between {{ start_date }} and {{ end_date }}</h2>
+        <ul>
+            {% for visitor in visitors %}
+                <li>{{ visitor.name }} - {{ visitor.entry_time }}{% if visitor.exit_time %} (Exited: {{ visitor.exit_time }}) {% endif %}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No visitors found for the selected dates.</p>
+    {% endif %}
+{% endblock %}

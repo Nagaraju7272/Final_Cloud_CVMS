@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block content %}
+    <h1>Update Visitor</h1>
+    <form method="post" enctype="multipart/form-data" class="update-form">
+        {% csrf_token %}
+        <input type="text" name="name" value="{{ visitor.name }}" required class="form-input">
+        <input type="text" name="phone" value="{{ visitor.phone }}" required class="form-input">
+        <input type="datetime-local" name="exit_time" value="{% if visitor.exit_time %}{{ visitor.exit_time|date:'Y-m-d\TH:i' }}{% endif %}" placeholder="YYYY-MM-DDTHH:MM" class="form-input">
+        <input type="file" name="photo" class="form-input">
+        <button type="submit" class="submit-button">Update</button>
+    </form>
+    <a href="{% url 'visitors' %}" class="back-button">Back to Visitors</a>
+{% endblock %}
