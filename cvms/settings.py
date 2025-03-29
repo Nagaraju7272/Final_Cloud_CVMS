@@ -27,7 +27,7 @@ SECRET_KEY = 'django-insecure-bnqm4)r65ydv9t*e7foq%e=^c4eczp=m6c+v#$+#l4b+303fyn
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
  
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', '.elasticbeanstalk.com']
+ALLOWED_HOSTS = ['*']
  
 LOGIN_URL = '/accounts/login/'  # Redirect unauthenticated users here
 LOGIN_REDIRECT_URL = '/'  # Redirect after login to dashboard
@@ -44,11 +44,13 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'visitor_app',
     'storages',
+    
 ]
  
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware', 
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -144,6 +146,8 @@ USE_TZ = True
 STATIC_ROOT = BASE_DIR / "staticfiles"
  
 STATIC_URL = 'static/'
+
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
  
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
