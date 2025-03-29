@@ -1,0 +1,60 @@
+name: Deploy to AWS Elastic Beanstalk
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Log in to Docker Hub
+      run: echo "${{ secrets.DOCKER_HUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_HUB_USERNAME }}" --password-stdin
+
+    - name: Set Image Tag
+      run: echo "IMAGE_TAG=$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
+
+    - name: Build and Push Docker Image
+      run: |
+        docker build -t nagaraju3029/cvms-9:${{ env.IMAGE_TAG }} .
+        docker push nagaraju3029/cvms-9:${{ env.IMAGE_TAG }}
+
+    - name: Generate Dockerrun.aws.json
+      run: |
+        echo '{
+          "AWSEBDockerrunVersion": "1",
+          "Image": {
+            "Name": "nagaraju3029/cvms-9:${{ env.IMAGE_TAG }}",
+            "Update": "true"
+          },
+          "Ports": [
+            {
+              "ContainerPort": 8000,
+              "HostPort": 80
+            }
+          ],
+          "Logging": "/var/log/nginx"
+        }' > Dockerrun.aws.json
+
+    - name: Upload Artifact for Deployment
+      uses: actions/upload-artifact@v4
+      with:
+        name: dockerrun-json
+        path: Dockerrun.aws.json
+
+    - name: Deploy to AWS Elastic Beanstalk
+      uses: einaregilsson/beanstalk-deploy@v21
+      with:
+        aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws_session_token: ${{ secrets.AWS_SESSION_TOKEN }}
+        application_name: CVMS
+        environment_name: CVMS-env
+        region: ${{ secrets.AWS_S3_REGION_NAME }}
+        version_label: "deploy-${{ env.IMAGE_TAG }}"
+        deployment_package: Dockerrun.aws.json
