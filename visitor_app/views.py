@@ -1,9 +1,13 @@
 import boto3
+import logging
 from django.shortcuts import render, redirect, HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.contrib.auth.forms import UserCreationForm
 from datetime import datetime, timezone
+
+# Initialize logger
+logger = logging.getLogger(__name__)
 
 # Initialize AWS services with debug
 print(f"Loading AWS region: {settings.AWS_S3_REGION_NAME.strip() if settings.AWS_S3_REGION_NAME else 'Not set'}")
@@ -192,26 +196,59 @@ def reports(request):
     start_date = ''
     end_date = ''
     visitors = []
+    error = None
+
     if request.method == 'POST':
-        start_date = request.POST['start_date']
-        end_date = request.POST['end_date']
-        try:
-            start_iso = datetime.strptime(start_date, '%Y-%m-%d').replace(tzinfo=timezone.utc).isoformat()
-            end_iso = datetime.strptime(end_date, '%Y-%m-d').replace(tzinfo=timezone.utc).isoformat() + 'Z'
-            response = table.scan(
-                FilterExpression="entry_time BETWEEN :start AND :end",
-                ExpressionAttributeValues={
-                    ':start': start_iso,
-                    ':end': end_iso
-                }
-            )
-            visitors = response['Items']
-        except ValueError as e:
-            return render(request, 'reports.html', {'error': 'Invalid date format. Use YYYY-MM-DD.', 'start_date': start_date, 'end_date': end_date})
-        except Exception as e:
-            print(f"Error generating report: {str(e)}")
-            return HttpResponse(f"Error generating report: {str(e)}", status=500)
-    return render(request, 'reports.html', {'visitors': visitors, 'start_date': start_date, 'end_date': end_date})
+        start_date = request.POST.get('start_date', '')
+        end_date = request.POST.get('end_date', '')
+
+        logger.debug(f"Received start_date: {start_date}, end_date: {end_date}")
+
+        if not start_date or not end_date:
+            error = "Both start date and end date are required."
+        else:
+            try:
+                # Parse dates and convert to datetime objects
+                start_dt = datetime.strptime(start_date, '%Y-%m-%d').replace(
+                    hour=0, minute=0, second=0, microsecond=0, tzinfo=timezone.utc
+                )
+                end_dt = datetime.strptime(end_date, '%Y-%m-%d').replace(
+                    hour=23, minute=59, second=59, microsecond=999999, tzinfo=timezone.utc
+                )
+
+                # Validate date range
+                if start_dt > end_dt:
+                    error = "Start date must be before or equal to end date."
+                else:
+                    # Convert to ISO format for DynamoDB
+                    start_iso = start_dt.isoformat()
+                    end_iso = end_dt.isoformat()
+
+                    logger.debug(f"Parsed start_iso: {start_iso}, end_iso: {end_iso}")
+
+                    # Scan DynamoDB with date range
+                    response = table.scan(
+                        FilterExpression="entry_time BETWEEN :start AND :end",
+                        ExpressionAttributeValues={
+                            ':start': start_iso,
+                            ':end': end_iso
+                        }
+                    )
+                    visitors = response['Items']
+                    logger.debug(f"Found {len(visitors)} visitors")
+            except ValueError as e:
+                logger.error(f"Date parsing error: {e}")
+                error = f"Invalid date format. Use YYYY-MM-DD. Error: {str(e)}"
+            except Exception as e:
+                logger.error(f"Error generating report: {str(e)}")
+                return HttpResponse(f"Error generating report: {str(e)}", status=500)
+
+    return render(request, 'reports.html', {
+        'visitors': visitors,
+        'start_date': start_date,
+        'end_date': end_date,
+        'error': error
+    })
 
 @login_required
 def search(request):
